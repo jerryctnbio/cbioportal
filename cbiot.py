@@ -149,14 +149,9 @@ def getVariation(gene:list, timeout=300.0)->list:
     # merge the two DataFrames
     on_t=['Gene', 'Chr', 'Start', 'End', 'Ref', 'Var']
     
-#    on_t=['UniqueSample']
-#    on_t+=['StudyID', 'MolProfID', 'SampleID']
-    
     variation_combined=pd.merge(variationH, variationE, on=on_t, how='outer')
 
-    print("merge before\n")
     print(variation_combined)
-    print("merge after\n")
 
     variation_combined['Diff']=variation_combined.UniqueSample_x \
                                -variation_combined.UniqueSample_y
@@ -166,9 +161,6 @@ def getVariation(gene:list, timeout=300.0)->list:
     by_t=['Gene', 'Diff', 'Chr', 'Start', 'End', 'Ref', 'Var', 'UniqueSample_x']
     asc_t=[True, False, True, True, True, True, True, True]
 
-#    by_t+=['StudyID', 'MolProfID', 'SampleID']
-#    asc_t+=[True, True, True, True]
-    
     variation_combined.sort_values(by=by_t, inplace=True, ascending=asc_t)
 
     return variation_combined
