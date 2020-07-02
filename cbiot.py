@@ -1,12 +1,14 @@
-"""This little script extracts all the defined variations in cbioportal.
+"""This script extracts all the defined variations in cbioportal
+for a set of gene names.
 
-It tallies all the unique number of samples for each variation.
+It also tallies the unique number of samples for each variation.
 Each variation shall have defined 'chr', 'pos_start' and 'pos_end'.
 
-The output shall have 'Gene', 'Chr', 'Start', 'End', 'Ref', 'Var'
-, the unique number of samples
+The output have 'Gene', 'Chr', 'Start', 'End', 'Ref', 'Var'
+, and the unique number of samples.
 
-The output is in a table format, i.e., in '.xlsx' format (Excel).
+The output is in a table format, which defaults to Excel '.xlsx',
+but can be set to '.csv' format as well.
 """
 
 __version='R1.0.0.0'
