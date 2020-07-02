@@ -76,9 +76,7 @@ def main():
     outFile=getOutFileName(args)
     
     # save to Excel file (.xlsx)
-#    variation.to_excel(outFile)
-
-    variation.to_csv(outFile+'.txt')
+    variation.to_excel(outFile)
 
 
 def getVariation(gene:list, timeout=300.0)->list:

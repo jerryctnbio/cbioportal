@@ -32,25 +32,35 @@ def main():
     usage+="or a file with a column of gene names.\n\n"
     usage+="If any gene name is given, the input file, if given, is"
     usage+=" ignored.\n\n"
-    usage+="The output is an Excel file with all variation details,\n"
+    usage+="The output defaults to Excel file with all variation details,\n"
     usage+="such as gene, chr, pos_start, pos_end, reference_allele\n"
-    usage+=", variation allele and unique number of samples.\n\n"
+    usage+=", variation allele and unique number of samples.\n"
+    usage+="But it can be in csv format by -csv\n\n"
     usage+="If the output file name is not provided, it is given as below:\n"
     usage+="If the input file is given, it will mirror that with '.out'\n"
-    usage+="added; otherwise it is named as 'your.cbioportal.out'.\n"
+    usage+="added; otherwise it is named as 'your.cbioportal.out'.\n\n"
+    usage+="The output defaults to Excel (.xslx) format. You need to install\n"
+    usage+="the following modules for it to work:\n\n"
+    usage+="            xlwt openpyxl xlsxwriter xlrd\n\n"
     
     argParser=argparse.ArgumentParser(description=title)
     
-    argParser.add_argument("-g", help="Input gene name[s]"
-                               , action="append", nargs='*')
+    argParser.add_argument("-g", help="input gene name[s]"
+                               , action="append", nargs='+')
     
-    msg="Input file with a column of gene names"
+    msg="input file with a column of gene names"
     argParser.add_argument("-f", help=msg)
-    argParser.add_argument("-o", help="Output file name")
+    argParser.add_argument("-o", help="output file name")
+
+    msg="set output format to '.csv', otherwise '.xlsx'."
+    argParser.add_argument("-csv", help=msg
+                                 , action='store_true')
     argParser.add_argument("-t", '--timeout', default=300.0, type=float
-                    , help="Default timeout in seconds [300.0]")
+                    , help="default timeout in seconds [300.0]")
     
     args=argParser.parse_args()
+    
+    print(args)
     
     if not args.g and not args.f:
         
@@ -73,12 +83,15 @@ def main():
     variation=getVariation(gene, timeout)
 
     # get the output file name
-    outFile=getOutFileName(args)
-    
-    # save to Excel file (.xlsx)
-#    variation.to_excel(outFile)
+    outFile=getOutFileName(args, args.csv)
 
-    variation.to_csv(outFile+'.txt')
+    # save the output
+    if args.csv:
+        # save to .csv file
+        variation.to_csv(outFile)
+    else:
+        # save to Excel file (.xlsx)
+        variation.to_excel(outFile)
 
 
 def getVariation(gene:list, timeout=300.0)->list:
@@ -336,7 +349,17 @@ def getGeneInfo(cbioportal, gene:list, timeout=300.0):
     for g in geneInfo:        
         geneInfo_dict[g.hugoGeneSymbol]=g.entrezGeneId
         
-    geneID=[geneInfo_dict[g.upper()] for g in gene]
+    geneID=[]
+    for g in gene:
+        
+        try:
+            geneID.append(geneInfo_dict[g.upper()])
+
+        except KeyError:
+            
+            print(f"*** Gene '{g}' does not have a valid Entrez gene ID. ***")
+            
+            sys.exit(1)
 
     # The info displayed to the terminal, matching the input order
     geneID_display=["{} ==> {}"
@@ -389,11 +412,17 @@ def cbioportal_exe(operation, args, timeout=300.0):
     return cbio_result
     
             
-def getOutFileName(args) ->str:
+def getOutFileName(args, csv:bool):
     """Get the output file name."""
 
+    ext='.csv' if csv else '.xlsx'
+
     if args.o and len(args.o)>0:
-        return args.o
+        
+        parent=Path(args.o).parent
+        stem=Path(args.o).stem
+    
+        return Path(parent/(stem+ext))
 
     # if not given, generate as follows:
     if args.f and len(args.f)>0:
@@ -401,11 +430,11 @@ def getOutFileName(args) ->str:
         parent=Path(args.f).parent
         stem=Path(args.f).stem
         
-        file_t=stem+".out.xlsx"
-        outFile=Path(parent/file_t)
+        stem=stem+".out"
+        outFile=Path(parent/(stem+ext))
         
     else:
-        outFile="your.cbioportal.out.xlsx"
+        outFile=Path("your.cbioportal.out"+ext)
 
     return outFile
 
