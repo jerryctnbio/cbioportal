@@ -60,8 +60,6 @@ def main():
     
     args=argParser.parse_args()
     
-    print(args)
-    
     if not args.g and not args.f:
         
         print("*****************************************")
